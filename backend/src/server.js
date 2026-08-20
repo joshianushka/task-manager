@@ -8,6 +8,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 const protect = require("./middleware/authMiddleware");
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 connectDB();
 
 app.use("/api/auth", authRoutes);
+app.use("/api/tasks", taskRoutes);
 app.get("/api/protected", protect, (req, res) => {
     res.json({
         message: "You accessed a protected route",
