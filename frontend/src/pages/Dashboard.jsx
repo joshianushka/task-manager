@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import TaskForm from "../components/TaskForm";
 
 function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const navigate = useNavigate();
 
@@ -30,6 +33,23 @@ function Dashboard() {
   useEffect(() => {
     fetchTasks();
   }, []);
+
+  const deleteTask=async(taskId)=>{
+    const confirmed=window.confirm("Are you sure you want to delete this task?");
+    if(!confirmed) return;
+    try{
+      await api.delete(`/tasks/${taskId}`);
+      setTasks((prevTasks)=>prevTasks.filter((task)=>task._id!==taskId));
+    }catch(error){
+      setError(
+        error.response?.data?.message || "Failed to delete task"
+      );
+    }
+  };
+  const handleEdit = (task) => {
+  setEditingTask(task);
+  setShowTaskForm(true);
+};
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -82,11 +102,38 @@ function Dashboard() {
           </div>
 
           <button
+            onClick={() => {
+  setEditingTask(null);
+  setShowTaskForm(true);
+}}
             className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            + Add Task
+>
+                + Add Task
           </button>
+          {showTaskForm && (
+  <TaskForm
+    task={editingTask}
 
+    onClose={() => {
+      setShowTaskForm(false);
+      setEditingTask(null);
+    }}
+
+    onTaskCreated={(newTask) => {
+      setTasks((prevTasks) => [newTask, ...prevTasks]);
+    }}
+
+    onTaskUpdated={(updatedTask) => {
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === updatedTask._id
+            ? updatedTask
+            : task
+        )
+      );
+    }}
+  />
+)}
         </div>
 
 
@@ -142,7 +189,7 @@ function Dashboard() {
                     </p>
                   </div>
 
-
+                <div className="flex flex-col gap-2 items-end">
                   <div className="flex gap-2">
 
                     <span className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700">
@@ -154,6 +201,15 @@ function Dashboard() {
                     </span>
 
                   </div>
+                  <div className="flex gap-2">
+                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" onClick={() => handleEdit(task)}>
+                    Edit
+                  </button>
+                  <button onClick={()=>deleteTask(task._id)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                    Delete
+                  </button>
+                  </div>
+                </div>
 
                 </div>
 
