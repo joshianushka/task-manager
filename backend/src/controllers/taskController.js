@@ -2,7 +2,7 @@ const Task = require("../models/Task");
 
 const createTask = async (req, res) => {
     try {
-        const { title, description, status, priority } = req.body;
+        const { title, description, status, priority, deadline } = req.body;
 
         if (!title) {
             return res.status(400).json({
@@ -15,6 +15,7 @@ const createTask = async (req, res) => {
             description,
             status,
             priority,
+            deadline,
             user: req.user
         });
 
@@ -81,7 +82,7 @@ const getTask = async (req, res) => {
 
 const updateTask = async (req, res) => {
     try {
-        const { title, description, status, priority } = req.body;
+        const { title, description, status, priority,deadline } = req.body;
 
         const task = await Task.findOne({
             _id: req.params.id,
@@ -108,6 +109,9 @@ const updateTask = async (req, res) => {
 
         if (priority !== undefined) {
             task.priority = priority;
+        }
+        if (deadline !== undefined) {
+            task.deadline = deadline;
         }
 
         await task.save();
